@@ -13,23 +13,35 @@ import serviceAppointmentRouter from './routes/serviceAppointmentRouter.js';
 const app = express();
 const port = process.env.PORT || 4000;
 
-// ⭐ IMPORTANT: ENABLE CREDENTIALS FOR CLERK COOKIE SESSION
+// ⭐ IMPORTANT: ALLOW BOTH LOCAL AND PRODUCTION VERCEL ORIGINS
 const allowedOrigins = [
-  "http://localhost:5173", // user frontend
-  "http://localhost:5174", // admin dashboard
+  "http://localhost:5173",                 // Local User Frontend
+  "http://localhost:5174",                 // Local Admin Dashboard
+  "http://127.0.0.1:5173",                 // Local alternative loopback
+  "http://127.0.0.1:5174",                 // Local alternative loopback
+  "https://atlas-care-alpha.vercel.app",   // Production User Frontend
+  "https://atlascare-admin.vercel.app"     // Production Admin Dashboard
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow server-to-server & tools like Postman (no origin)
-      if (!origin) return callback(null, true);
+        // allow server-to-server & tools like Postman (no origin)
+        if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+        // Allow any localhost origin during development (different ports / loopbacks)
+        const isLocalhost = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+        if (process.env.NODE_ENV !== 'production' && isLocalhost) {
+          console.log(`CORS: allowing localhost origin ${origin}`);
+          return callback(null, true);
+        }
 
-      return callback(new Error("Not allowed by CORS"));
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        console.warn(`CORS: blocked origin ${origin}`);
+        return callback(new Error("Not allowed by CORS"));
     },
     credentials: true, // ✅ REQUIRED for cookies / Clerk
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
