@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { homeDoctorsStyles, iconSize } from "../../assets/dummyStyles";
 
 const HomeDoctors = ({ apiBase, previewCount = 8 }) => {
-  const API_BASE = apiBase || "http://localhost:4000";
+  const API_BASE =
+    apiBase || import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

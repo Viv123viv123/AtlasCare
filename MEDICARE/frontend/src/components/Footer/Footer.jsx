@@ -163,7 +163,7 @@ const Footer = () => {
             <h3 className={footerStyles.sectionTitle}>Our Services</h3>
             <ul className={footerStyles.linksList}>
               {services.map((service, index) => (
-                <li key={service.name}>
+                <li key={`${service.name}-${index}`}>
                   <a href={service.href} className={footerStyles.serviceLink}>
                     <div className={footerStyles.serviceIcon} />
                     <span>{service.name}</span>
