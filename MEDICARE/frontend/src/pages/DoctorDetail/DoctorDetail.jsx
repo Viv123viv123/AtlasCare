@@ -416,11 +416,15 @@ export default function DoctorDetail() {
 
                 <img
                   src={
-                    doctor.imageUrl || doctor.image || "/placeholder-doctor.jpg"
+                    doctor.imageUrl || doctor.image || "/logo.png"
                   }
                   alt={doctor.name}
                   className={doctorDetailStyles.avatarImage}
                   style={{ objectPosition: "center" }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/logo.png";
+                  }}
                 />
               </div>
 

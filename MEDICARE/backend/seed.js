@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 import Doctor from "./models/Doctor.js";
+import Appointment from "./models/Appointment.js";
+import Service from "./models/Service.js";
 import { connectDB } from "./config/db.js";
 
 dotenv.config();
@@ -387,11 +389,161 @@ const doctors = [
 ];
 
 const emails = doctors.map((item) => item.email);
+const DEMO_PATIENT_USER_ID = "demo-patient-1";
+const DEMO_APPOINTMENTS = [
+  { doctorIndex: 0, offsetDays: 3, time: "10:00 AM", status: "Confirmed", fees: 700, paymentMethod: "Cash", paymentStatus: "Paid" },
+  { doctorIndex: 2, offsetDays: 7, time: "11:30 AM", status: "Confirmed", fees: 500, paymentMethod: "Cash", paymentStatus: "Paid" },
+  { doctorIndex: 4, offsetDays: 10, time: "03:00 PM", status: "Pending", fees: 600, paymentMethod: "Cash", paymentStatus: "Pending" },
+];
+
+function getFutureDate(offsetDays) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().split("T")[0];
+}
+
+async function seedAppointments(savedDoctors) {
+  const demoName = "John Doe";
+  const demoMobile = "9876543210";
+
+  for (const item of DEMO_APPOINTMENTS) {
+    const doctor = savedDoctors[item.doctorIndex % savedDoctors.length];
+    if (!doctor) continue;
+
+    const date = getFutureDate(item.offsetDays);
+    const appointmentData = {
+      owner: doctor.owner || String(doctor._id),
+      createdBy: DEMO_PATIENT_USER_ID,
+      patientName: demoName,
+      mobile: demoMobile,
+      age: 35,
+      gender: "Male",
+      doctorId: doctor._id,
+      doctorName: doctor.name || "Doctor",
+      speciality: doctor.specialization || doctor.speciality || "General",
+      doctorImage: { url: doctor.imageUrl || doctor.image || "", publicId: doctor.imagePublicId || "" },
+      date,
+      time: item.time,
+      fees: item.fees,
+      status: item.status,
+      payment: {
+        method: item.paymentMethod,
+        status: item.paymentStatus,
+        amount: item.fees,
+      },
+      sessionId: null,
+      paidAt: item.paymentStatus === "Paid" ? new Date() : null,
+    };
+
+    const existing = await Appointment.findOne({
+      createdBy: DEMO_PATIENT_USER_ID,
+      doctorId: doctor._id,
+      date,
+      time: item.time,
+    });
+
+    if (existing) {
+      console.log(`🔄 Updating demo appointment for ${doctor.name} on ${date} at ${item.time}`);
+      await Appointment.updateOne({ _id: existing._id }, { $set: appointmentData });
+    } else {
+      console.log(`➕ Creating demo appointment for ${doctor.name} on ${date} at ${item.time}`);
+      await Appointment.create(appointmentData);
+    }
+  }
+}
+
+const servicesSeed = [
+  {
+    name: "Blood Sugar Test",
+    about: "Fasting and postprandial blood sugar testing to check glucose levels.",
+    shortDescription: "Quick blood sugar test",
+    price: 199,
+    available: true,
+    imageUrl: "https://media.istockphoto.com/id/491965869/photo/woman-doing-blood-sugar-test.jpg",
+    dates: [
+      getFutureDate(3),
+      getFutureDate(7),
+      getFutureDate(14)
+    ],
+    slots: {
+      [getFutureDate(3)]: ["09:00 AM","10:00 AM","11:00 AM"],
+      [getFutureDate(7)]: ["09:00 AM","11:00 AM","01:00 PM"],
+    },
+  },
+  {
+    name: "Blood Pressure Check",
+    about: "Non-invasive blood pressure measurement and consultation.",
+    shortDescription: "Blood pressure screening",
+    price: 149,
+    available: true,
+    imageUrl: "https://images.unsplash.com/photo-1580281657524-7b2b7b119b8a",
+    dates: [getFutureDate(2), getFutureDate(6)],
+    slots: { [getFutureDate(2)]: ["09:30 AM", "10:30 AM", "11:30 AM"] },
+  },
+  {
+    name: "X-Ray Scan",
+    about: "Digital X-Ray imaging for chest, limbs and other body parts.",
+    shortDescription: "X-Ray imaging",
+    price: 599,
+    available: true,
+    imageUrl: "https://images.unsplash.com/photo-1582719478250-7b5b8f9c6f2e",
+    dates: [getFutureDate(4), getFutureDate(11)],
+    slots: { [getFutureDate(4)]: ["10:00 AM", "02:00 PM"] },
+  },
+  {
+    name: "Full Blood Count",
+    about: "Complete blood count (FBC) to analyse blood components.",
+    shortDescription: "Full blood count",
+    price: 399,
+    available: true,
+    imageUrl: "https://images.unsplash.com/photo-1580281657524-7b2b7b119b8a",
+    dates: [getFutureDate(5), getFutureDate(12)],
+    slots: { [getFutureDate(5)]: ["09:00 AM", "11:00 AM"] },
+  },
+  {
+    name: "Complete Blood Count",
+    about: "CBC to evaluate overall health and detect disorders.",
+    shortDescription: "Complete blood count",
+    price: 399,
+    available: true,
+    imageUrl: "https://images.unsplash.com/photo-1580281657524-7b2b7b119b8a",
+    dates: [getFutureDate(5), getFutureDate(10)],
+    slots: { [getFutureDate(5)]: ["10:00 AM","12:00 PM"] },
+  },
+  {
+    name: "Eye Check-up",
+    about: "Vision and eyesight check-up with basic screening.",
+    shortDescription: "Eye screening",
+    price: 299,
+    available: true,
+    imageUrl: "https://media.istockphoto.com/id/1140521075/photo/tuning-the-intrument-little-boy-with-phoropter-having-testing-his-eyes-in-the-doctors-office.jpg",
+    dates: [getFutureDate(2), getFutureDate(9)],
+    slots: { [getFutureDate(2)]: ["02:00 PM","03:00 PM"] },
+  },
+];
+
+async function seedServices() {
+  try {
+    for (const svc of servicesSeed) {
+      const existing = await Service.findOne({ name: svc.name });
+      if (existing) {
+        console.log(`🔄 Updating service: ${svc.name}`);
+        await Service.updateOne({ _id: existing._id }, { $set: svc });
+      } else {
+        console.log(`➕ Creating service: ${svc.name}`);
+        await Service.create(svc);
+      }
+    }
+  } catch (err) {
+    console.error("Error seeding services:", err);
+  }
+}
 
 async function seedDoctors() {
   try {
     await connectDB();
 
+    const savedDoctors = [];
     for (const doctor of doctors) {
       const existing = await Doctor.findOne({ email: doctor.email });
 
@@ -401,13 +553,18 @@ async function seedDoctors() {
           { email: doctor.email },
           { $set: { schedule: doctor.schedule } }
         );
+        savedDoctors.push(existing);
       } else {
         console.log(`➕ Adding new doctor: ${doctor.email}`);
-        await Doctor.create(doctor);
+        const created = await Doctor.create(doctor);
+        savedDoctors.push(created);
       }
     }
 
-    console.log(`✅ Seed completed: ${doctors.length} doctors processed.`);
+    await seedAppointments(savedDoctors);
+    await seedServices();
+
+    console.log(`✅ Seed completed: ${doctors.length} doctors processed, ${DEMO_APPOINTMENTS.length} demo appointments seeded, and ${servicesSeed.length} services seeded.`);
     process.exit(0);
   } catch (error) {
     console.error("❌ Seeding failed:", error);

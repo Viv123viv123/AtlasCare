@@ -177,13 +177,13 @@ const HomeDoctors = ({ apiBase, previewCount = 8 }) => {
                   >
                     <div className={homeDoctorsStyles.imageContainerAvailable}>
                       <img
-                        src={doctor.image || "/placeholder-doctor.jpg"}
+                        src={doctor.image || "/logo.png"}
                         alt={doctor.name}
                         loading="lazy"
                         className={homeDoctorsStyles.image}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/placeholder-doctor.jpg";
+                          e.currentTarget.src = "/logo.png";
                         }}
                       />
                     </div>
@@ -191,13 +191,13 @@ const HomeDoctors = ({ apiBase, previewCount = 8 }) => {
                 ) : (
                   <div className={homeDoctorsStyles.imageContainerUnavailable}>
                     <img
-                      src={doctor.image || "/placeholder-doctor.jpg"}
+                      src={doctor.image || "/logo.png"}
                       alt={doctor.name}
                       loading="lazy"
                       className={homeDoctorsStyles.image}
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        e.currentTarget.src = "/placeholder-doctor.jpg";
+                        e.currentTarget.src = "/logo.png";
                       }}
                     />
                     {/* optional small badge */}

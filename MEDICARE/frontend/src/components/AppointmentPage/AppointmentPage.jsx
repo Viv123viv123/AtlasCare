@@ -17,9 +17,11 @@ import {
   badgeStyles,
   iconSize,
 } from "../../assets/dummyStyles";
+import { bookedServices } from "./dummyAppointment";
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 const API = axios.create({ baseURL: API_BASE });
+const DEMO_PATIENT_ID = "demo-patient-1";
 
 /* -------------------- Helpers -------------------- */
 function pad(n) {
@@ -172,6 +174,35 @@ export default function AppointmentPage() {
     setLoadingDoctors(true);
     setError(null);
 
+    if (!isSignedIn) {
+      try {
+        console.log("Loading demo appointments for guest patient...");
+        const demoResp = await API.get(
+          `/api/appointments?createdBy=${DEMO_PATIENT_ID}`,
+        );
+        const fetched =
+          demoResp?.data?.appointments ?? demoResp?.data?.data ?? demoResp?.data ?? [];
+        const arr = Array.isArray(fetched) ? fetched : [];
+        const doctors = arr.filter((a) => {
+          return (
+            (a.doctorId !== undefined && a.doctorId !== null) ||
+            !!a.doctorName ||
+            !a.serviceId
+          );
+        });
+
+        setDoctorAppts(doctors);
+        setAppointmentsRaw((p) => ({ ...p, doctors }));
+      } catch (demoErr) {
+        console.error("Failed to load demo appointments:", demoErr);
+        setError("Failed to load demo appointments. Check console.");
+        setDoctorAppts([]);
+      } finally {
+        setLoadingDoctors(false);
+      }
+      return;
+    }
+
     let token = null;
     try {
       token = await getToken();
@@ -209,60 +240,26 @@ export default function AppointmentPage() {
         "Error calling /api/appointments/me:",
         err?.response?.data || err.message || err,
       );
-
-      if (user?.id) {
-        try {
-          console.log("Attempting debug request with ?createdBy=", user.id);
-          const debugResp = await API.get(
-            `/api/appointments/me?createdBy=${user.id}`,
-            { headers },
-          );
-          console.log("Debug fallback response:", debugResp?.data);
-
-          const fetched =
-            debugResp?.data?.appointments ??
-            debugResp?.data?.data ??
-            debugResp?.data ??
-            [];
-          const arr = Array.isArray(fetched) ? fetched : [];
-          const doctors = arr.filter(
-            (a) =>
-              (a.doctorId !== undefined && a.doctorId !== null) ||
-              !!a.doctorName ||
-              !a.serviceId,
-          );
-          setDoctorAppts(doctors);
-          setAppointmentsRaw((p) => ({ ...p, doctors }));
-        } catch (err2) {
-          console.error(
-            "Debug fallback failed (doctors):",
-            err2?.response?.data || err2.message || err2,
-          );
-          setError((prev) =>
-            prev
-              ? prev + " | Doctors failed"
-              : "Failed to load doctor appointments. Check console.",
-          );
-          setDoctorAppts([]);
-        }
-      } else {
-        setError((prev) =>
-          prev
-            ? prev + " | No user id for doctors"
-            : "Failed to load doctor appointments and no user id available for debug fallback.",
-        );
-        setDoctorAppts([]);
-      }
+      setError("Failed to load doctor appointments. Check console.");
+      setDoctorAppts([]);
     } finally {
       setLoadingDoctors(false);
     }
-  }, [isLoaded, getToken, user]);
+  }, [isLoaded, isSignedIn, getToken]);
 
   /* -------------------- Fetch Service Appointments -------------------- */
   const loadServiceAppointments = useCallback(async () => {
     if (!isLoaded) return;
     setLoadingServices(true);
     setError(null);
+
+    if (!isSignedIn) {
+      console.log("Loading demo service bookings for guest user...");
+      setServiceAppts(bookedServices);
+      setAppointmentsRaw((p) => ({ ...p, services: bookedServices }));
+      setLoadingServices(false);
+      return;
+    }
 
     let token = null;
     try {
@@ -330,7 +327,7 @@ export default function AppointmentPage() {
     } finally {
       setLoadingServices(false);
     }
-  }, [isLoaded, getToken, user]);
+  }, [isLoaded, isSignedIn, getToken, user]);
 
   /* -------------------- Combined loader -------------------- */
   useEffect(() => {
@@ -506,7 +503,7 @@ export default function AppointmentPage() {
             <div key={item.id} className={cardStyles.doctorCard}>
               <div className={cardStyles.doctorImageContainer}>
                 <img
-                  src={item.image || "/placeholder-doctor.png"}
+                  src={item.image || "/logo.png"}
                   alt={item.doctor}
                   className={cardStyles.image}
                   loading="lazy"
@@ -547,7 +544,7 @@ export default function AppointmentPage() {
 
         {/* ------------ SERVICE BOOKINGS ------------ */}
         <h2 className={appointmentPageStyles.serviceTitle}>
-          Your Booked Services
+          {isSignedIn ? "Your Booked Services" : "Demo Booked Services"}
         </h2>
 
         {loadingServices && (
@@ -567,7 +564,7 @@ export default function AppointmentPage() {
             <div key={srv.id} className={cardStyles.serviceCard}>
               <div className={cardStyles.serviceImageContainer}>
                 <img
-                  src={srv.image || "/placeholder-service.png"}
+                  src={srv.image || "/logo.png"}
                   alt={srv.name}
                   className={cardStyles.image}
                   loading="lazy"

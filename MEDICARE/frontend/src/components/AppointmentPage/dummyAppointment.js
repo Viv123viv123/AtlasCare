@@ -79,7 +79,7 @@ export const bookedServices = [
     image:
       "https://media.istockphoto.com/id/491965869/photo/woman-doing-blood-sugar-test.jpg?s=612x612&w=0&k=20&c=gC9xmTjGtB7M9HbCv1_bRkMOsR_dmcycDEH5ioDEp8Q=",
     price: 199,
-    date: "21 Nov 2025",
+    date: "21 Aug 2026",
     time: "09:00 AM",
     payment: "Cash",
     status: "Confirmed",
@@ -90,7 +90,7 @@ export const bookedServices = [
     image:
       "https://m.media-amazon.com/images/I/6180738vAmL._AC_UF350,350_QL80_.jpg",
     price: 149,
-    date: "28 Nov 2025",
+    date: "28 Aug 2026",
     time: "11:00 AM",
     payment: "Online",
     status: "Pending",
@@ -101,7 +101,7 @@ export const bookedServices = [
     image:
       "https://media.istockphoto.com/id/1140521075/photo/tuning-the-intrument-little-boy-with-phoropter-having-testing-his-eyes-in-the-doctors-office.jpg?s=612x612&w=0&k=20&c=vVWaRrp43NcqW28tYAl9xgp98BaZsJiy5A1NIRwWUlA=",
     price: 399,
-    date: "18 Nov 2025",
+    date: "18 Aug 2026",
     time: "03:00 PM",
     payment: "Cash",
     status: "Completed",
@@ -112,7 +112,7 @@ export const bookedServices = [
     image:
       "https://media.istockphoto.com/id/1415813531/photo/biochemist-of-doctor-holds-blood-sample-for-t3-t4-tsh-test-in-laboratory-background.jpg?s=612x612&w=0&k=20&c=gox_qnA11yPNG5ez0kGKAiy2NWMTjnoIR658bqAzc5Y=",
     price: 399,
-    date: "28 Nov 2025",
+    date: "28 Aug 2026",
     time: "06:00 PM",
     payment: "Online",
     status: "Rescheduled",
@@ -124,7 +124,7 @@ export const bookedServices = [
     image:
       "https://media.istockphoto.com/id/1415813531/photo/biochemist-of-doctor-holds-blood-sample-for-t3-t4-tsh-test-in-laboratory-background.jpg?s=612x612&w=0&k=20&c=gox_qnA11yPNG5ez0kGKAiy2NWMTjnoIR658bqAzc5Y=",
     price: 399,
-    date: "28 Nov 2025",
+    date: "28 Aug 2026",
     time: "06:00 PM",
     payment: "Online",
     status: "Rescheduled",

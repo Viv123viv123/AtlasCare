@@ -453,9 +453,13 @@ export default function ServiceDetail() {
         <div className={serviceDetailStyles.leftColumn}>
           <div className={serviceDetailStyles.imageContainer}>
             <img
-              src={service.image || "/placeholder-service.png"}
+              src={service.image || "/logo.png"}
               alt={service.name}
               className={serviceDetailStyles.image}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/logo.png";
+              }}
             />
           </div>
 

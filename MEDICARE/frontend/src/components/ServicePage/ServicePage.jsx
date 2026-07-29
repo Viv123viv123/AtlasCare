@@ -4,7 +4,7 @@ import { ChevronsRight, MousePointer2Off } from "lucide-react";
 import { Link } from "react-router-dom";
 import { servicePageStyles, serviceCardStyles } from "../../assets/dummyStyles";
 
-const PlaceholderImg = "/placeholder-service.jpg";
+const PlaceholderImg = "/logo.png";
 
 const ServiceCard = ({ service }) => {
   const hasSrcSet =

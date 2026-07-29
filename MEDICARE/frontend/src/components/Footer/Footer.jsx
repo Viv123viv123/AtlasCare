@@ -117,21 +117,21 @@ const Footer = () => {
                 <div className={footerStyles.contactIconWrapper}>
                   <Phone className={footerStyles.contactIcon} />
                 </div>
-                <span className={footerStyles.contactText}>+91 8299431275</span>
+                <span className={footerStyles.contactText}>+91 1234567890</span>
               </div>
               <div className={footerStyles.contactItem}>
                 <div className={footerStyles.contactIconWrapper}>
                   <Mail className={footerStyles.contactIcon} />
                 </div>
                 <span className={footerStyles.contactText}>
-                  hexagonsservices@gmail.com
+                  abc@gmai.com
                 </span>
               </div>
               <div className={footerStyles.contactItem}>
                 <div className={footerStyles.contactIconWrapper}>
                   <MapPin className={footerStyles.contactIcon} />
                 </div>
-                <span className={footerStyles.contactText}>Lucknow, India</span>
+                <span className={footerStyles.contactText}>Patna , India</span>
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ const Footer = () => {
               </div>
 
               {/* Social icons */}
-              <div className={footerStyles.socialContainer}>
+              {/* <div className={footerStyles.socialContainer}>
                 {socialLinks.map(({ Icon, color, name, href }, index) => (
                   <a
                     key={name}
@@ -229,7 +229,7 @@ const Footer = () => {
                     <Icon className={`${footerStyles.socialIcon} ${color}`} />
                   </a>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -237,18 +237,18 @@ const Footer = () => {
         {/* Bottom */}
         <div className={footerStyles.bottomSection}>
           <div className={footerStyles.copyright}>
-            <span>© {currentYear} MediCare Healthcare.</span>
+            <span>© {currentYear} AtlasCare Healthcare.</span>
           </div>
 
           <div className={footerStyles.designerText}>
             <span>Designed by</span>
             <a
-              href="https://hexagondigitalservices.com/"
+              href=""
               target="_blank"
               rel="noopener noreferrer"
               className={footerStyles.designerLink}
             >
-              Hexagon Digital Services
+              Vivek Kumar
             </a>
           </div>
         </div>

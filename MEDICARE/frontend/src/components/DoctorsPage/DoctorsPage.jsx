@@ -244,13 +244,13 @@ const DoctorsPage = ({ apiBase }) => {
                     >
                       <div className={doctorsPageStyles.imageContainer}>
                         <img
-                          src={doctor.image || "/placeholder-doctor.jpg"}
+                          src={doctor.image || "/logo.png"}
                           alt={doctor.name}
                           loading="lazy"
                           className={doctorsPageStyles.doctorImage}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/placeholder-doctor.jpg";
+                            e.currentTarget.src = "/logo.png";
                           }}
                         />
                       </div>
@@ -260,13 +260,13 @@ const DoctorsPage = ({ apiBase }) => {
                       className={`${doctorsPageStyles.imageContainer} ${doctorsPageStyles.imageContainerUnavailable}`}
                     >
                       <img
-                        src={doctor.image || "/placeholder-doctor.jpg"}
+                        src={doctor.image || "/logo.png"}
                         alt={doctor.name}
                         loading="lazy"
                         className={doctorsPageStyles.doctorImageUnavailable}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/placeholder-doctor.jpg";
+                          e.currentTarget.src = "/logo.png";
                         }}
                       />
                     </div>
