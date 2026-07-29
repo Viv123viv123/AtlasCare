@@ -50,7 +50,7 @@ appointmentRouter.get(
   requireAuth(),
   getAppointmentsByPatient
 );
-// appointmentRouter.get("/:id", getAppointmentById);
+appointmentRouter.get("/:id", getAppointmentById);
 appointmentRouter.get(
   "/doctor/:doctorId",
   getAppointmentsByDoctor

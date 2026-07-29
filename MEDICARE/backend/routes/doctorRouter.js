@@ -1,6 +1,7 @@
 // routes/doctorRouter.js
 import express from "express";
 import multer from "multer";
+import os from "os";
 
 import {
   createDoctor,
@@ -14,7 +15,8 @@ import {
 
 import doctorAuth from "../middlewares/doctorAuth.js";
 
-const upload = multer({ dest: "/tmp" });
+// Use the OS temp directory so uploads work cross-platform (Windows/Linux/macOS)
+const upload = multer({ dest: os.tmpdir() });
 
 const doctorRouter = express.Router();
 

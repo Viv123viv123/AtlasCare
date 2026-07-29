@@ -75,9 +75,14 @@ export async function createDoctor(req, res) {
     let imageUrl = body.imageUrl || null;
     let imagePublicId = body.imagePublicId || null;
     if (req.file?.path) {
-      const uploaded = await uploadToCloudinary(req.file.path, "doctors");
-      imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl;
-      imagePublicId = uploaded?.public_id || uploaded?.publicId || imagePublicId;
+      try {
+        const uploaded = await uploadToCloudinary(req.file.path, "doctors");
+        imageUrl = uploaded?.secure_url || uploaded?.url || imageUrl;
+        imagePublicId = uploaded?.public_id || uploaded?.publicId || imagePublicId;
+      } catch (uploadErr) {
+        console.error("Cloudinary upload failed:", uploadErr);
+        return res.status(502).json({ success: false, message: "Image upload failed", details: uploadErr?.message || String(uploadErr) });
+      }
     }
 
     const schedule = parseScheduleInput(body.schedule);
