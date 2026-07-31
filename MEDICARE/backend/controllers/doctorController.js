@@ -1,5 +1,5 @@
 // controllers/doctorController.js
-import jwt from "jsonwebtoken";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 import Doctor from "../models/Doctor.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 
@@ -87,9 +87,27 @@ export async function createDoctor(req, res) {
 
     const schedule = parseScheduleInput(body.schedule);
 
+    let clerkUser;
+    try {
+      clerkUser = await clerkClient.users.createUser({
+        emailAddress: [emailLC],
+        password: body.password,
+        firstName: body.name,
+        publicMetadata: { role: "doctor" },
+      });
+    } catch (clerkErr) {
+      console.error("Clerk doctor user creation failed:", clerkErr);
+      const clerkIssue = clerkErr?.errors?.[0];
+      return res.status(400).json({
+        success: false,
+        message: clerkIssue?.longMessage || clerkIssue?.message || "Unable to create Clerk doctor account",
+        code: clerkIssue?.code || "clerk_user_creation_failed",
+      });
+    }
+
     const doc = new Doctor({
       email: emailLC,
-      password: body.password,
+      clerkUserId: clerkUser.id,
       name: body.name,
       specialization: body.specialization || "",
       imageUrl,
@@ -106,26 +124,24 @@ export async function createDoctor(req, res) {
       rating: body.rating !== undefined ? Number(body.rating) : 0,
     });
 
-    await doc.save();
-
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.warn("JWT_SECRET is not set");
-      return res.status(500).json({ success: false, message: "Server misconfiguration" });
+    try {
+      await doc.save();
+    } catch (saveErr) {
+      await clerkClient.users.deleteUser(clerkUser.id).catch((deleteErr) => {
+        console.error("Failed to remove orphaned Clerk doctor user:", deleteErr);
+      });
+      throw saveErr;
     }
-
-    const token = jwt.sign({ id: doc._id.toString(), email: doc.email, role: "doctor" }, secret, { expiresIn: "7d" });
 
     const out = normalizeDocForClient(doc.toObject());
     delete out.password;
 
-    return res.status(201).json({ success: true, data: out, token });
+    return res.status(201).json({ success: true, data: out });
   } catch (err) {
     console.error("createDoctor error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
-
 export const getDoctors = async (req, res) => {
   try {
     const { q = "", limit: limitRaw = 200, page: pageRaw = 1 } = req.query;
@@ -316,31 +332,6 @@ export async function toggleAvailability(req, res) {
     return res.json({ success: true, data: out });
   } catch (err) {
     console.error("toggleAvailability error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
-}
-
-export async function doctorLogin(req, res) {
-  try {
-    const { email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ success: false, message: "Email and password required" });
-
-    const doc = await Doctor.findOne({ email: email.toLowerCase() }).select("+password");
-    if (!doc) return res.status(401).json({ success: false, message: "Invalid credentials" });
-
-    // Direct comparison (NO bcrypt)
-    if (doc.password !== password) return res.status(401).json({ success: false, message: "Invalid credentials" });
-
-    const secret = process.env.JWT_SECRET;
-    if (!secret) return res.status(500).json({ success: false, message: "JWT_SECRET not configured" });
-
-    const token = jwt.sign({ id: doc._id.toString(), email: doc.email, role: "doctor" }, secret, { expiresIn: "7d" });
-
-    const out = doc.toObject();
-    delete out.password;
-    return res.json({ success: true, token, data: out });
-  } catch (err) {
-    console.error("doctorLogin error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }

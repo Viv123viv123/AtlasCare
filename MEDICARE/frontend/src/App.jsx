@@ -21,6 +21,7 @@ import EditProfile from "./pages/EditProfile/EditProfile";
 import { CircleChevronUp } from "lucide-react";
 import VerifyPaymentPage from "../VerifyPaymetPage";
 import VerifyServicePaymentPage from "../VerifyServicePaymentPage";
+import LoginComplete from "./pages/Login/LoginComplete";
 
 /* ================= Scroll To Top ================= */
 const ScrollToTop = () => {
@@ -88,7 +89,9 @@ const App = () => {
           <Route path="/services" element={<Service />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/doctor-admin/login" element={<Login />} />
+          <Route path="/auth/complete" element={<LoginComplete />} />
 
           {/* ✅ STRIPE PAYMENT ROUTES */}
           <Route path="/appointment/success" element={<VerifyPaymentPage />} />

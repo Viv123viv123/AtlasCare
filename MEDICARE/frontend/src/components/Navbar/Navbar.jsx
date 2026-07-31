@@ -1,32 +1,21 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { Menu, X, User as UserIcon, Key } from "lucide-react";
 
 // Clerk
-import { SignedIn, SignedOut, useClerk, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 import { navbarStyles } from "../../assets/dummyStyles";
-
-const STORAGE_KEY = "doctorToken_v1";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [isDoctorLoggedIn, setIsDoctorLoggedIn] = useState(() => {
-    try {
-      return Boolean(localStorage.getItem(STORAGE_KEY));
-    } catch {
-      return false;
-    }
-  });
 
   const location = useLocation();
   const navRef = useRef(null);
-  const clerk = useClerk();
-  const navigate = useNavigate();
 
   /* Hide / show navbar on scroll */
   useEffect(() => {
@@ -42,17 +31,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
-
-  /* Sync doctor login state */
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === STORAGE_KEY) {
-        setIsDoctorLoggedIn(Boolean(e.newValue));
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
 
   /* Close mobile menu on outside click */
   useEffect(() => {
@@ -72,12 +50,6 @@ export default function Navbar() {
     { label: "Appointments", href: "/appointments" },
     { label: "Contact", href: "/contact" },
   ];
-
-  function doctorLogout() {
-    localStorage.removeItem(STORAGE_KEY);
-    setIsDoctorLoggedIn(false);
-    navigate("/");
-  }
 
   return (
     <>
@@ -151,7 +123,9 @@ export default function Navbar() {
 
                 {/* Patient Login */}
                 <button
-                  onClick={() => clerk.openSignIn()}
+                  onClick={() => {
+                    window.location.href = "/doctor-admin/login";
+                  }}
                   className={navbarStyles.loginButton}
                 >
                   <Key className={navbarStyles.loginIcon} />
@@ -213,7 +187,7 @@ export default function Navbar() {
                   <button
                     onClick={() => {
                       setIsOpen(false);
-                      clerk.openSignIn();
+                      window.location.href = "/doctor-admin/login";
                     }}
                     className={navbarStyles.mobileLoginButton}
                   >

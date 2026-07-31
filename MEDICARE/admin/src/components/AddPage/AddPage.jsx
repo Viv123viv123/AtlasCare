@@ -258,7 +258,7 @@ export default function DoctorDetailPage() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        const msg = data?.message || `Server error (${res.status})`;
+        const msg = data?.message || data?.details || `Server error (${res.status})`;
         showToast("error", msg);
         setLoading(false);
         return;

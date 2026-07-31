@@ -1,54 +1,42 @@
-// backend/middleware/doctorAuth.js
-import jwt from "jsonwebtoken";
+import { getAuth } from "@clerk/express";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 import Doctor from "../models/Doctor.js";
 
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
-
 export default async function doctorAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  // 1. Check token
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      success: false,
-      message: "Doctor not authorized, token missing",
-    });
-  }
-
-  const token = authHeader.split(" ")[1];
-
   try {
-    // 2. Verify token
-    const payload = jwt.verify(token, JWT_SECRET);
-
-    // OPTIONAL: if you store role in token
-    if (payload.role && payload.role !== "doctor") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied (not a doctor)",
-      });
+    const { userId } = getAuth(req);
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Doctor authentication required" });
     }
 
-    // 3. Fetch doctor
-    const doctor = await Doctor.findById(payload.id).select("-password");
+    const clerkUser = await clerkClient.users.getUser(userId);
+    const doctor = await Doctor.findOne({
+      $or: [{ clerkUserId: userId }, { email: clerkUser.emailAddresses?.[0]?.emailAddress?.toLowerCase() }],
+    }).select("-password");
 
     if (!doctor) {
-      return res.status(401).json({
-        success: false,
-        message: "Doctor not found",
+      return res.status(403).json({ success: false, message: "Clerk user is not linked to a doctor" });
+    }
+
+    if (clerkUser.publicMetadata?.role && clerkUser.publicMetadata.role !== "doctor") {
+      return res.status(403).json({ success: false, message: "Clerk user is not authorized as a doctor" });
+    }
+
+    if (!clerkUser.publicMetadata?.role) {
+      await clerkClient.users.updateUser(userId, {
+        publicMetadata: { ...clerkUser.publicMetadata, role: "doctor" },
       });
     }
 
-    // 4. Attach doctor to request
-    req.doctor = doctor;
+    if (doctor.clerkUserId !== userId) {
+      doctor.clerkUserId = userId;
+      await doctor.save();
+    }
 
+    req.doctor = doctor;
     next();
   } catch (err) {
-    console.error("Doctor JWT verification failed:", err);
-    return res.status(401).json({
-      success: false,
-      message: "Token invalid or expired",
-    });
+    console.error("Doctor Clerk verification failed:", err);
+    return res.status(401).json({ success: false, message: "Invalid Clerk session" });
   }
 }

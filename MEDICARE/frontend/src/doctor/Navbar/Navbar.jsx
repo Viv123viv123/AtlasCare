@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
+import { useClerk } from "@clerk/clerk-react";
 import { Home, Calendar, Edit, Menu, X, LogOut } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { navbarStylesDr } from "../../assets/dummyStyles";
@@ -8,6 +9,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const params = useParams();
   const location = useLocation();
+  const { signOut } = useClerk();
 
   // Try params first, then try to extract from pathname (e.g. /doctor-admin/123/...)
   const doctorId = useMemo(() => {
@@ -76,8 +78,8 @@ export default function Navbar() {
           {/* Logout button (desktop) */}
           <button
             className={navbarStylesDr.logoutButtonDesktop}
-            onClick={() => {
-              // TODO: integrate real logout (clear auth + redirect)
+            onClick={async () => {
+              await signOut();
               window.location.href = "/doctor-admin/login";
             }}
           >
@@ -130,8 +132,9 @@ export default function Navbar() {
           {/* Logout button mobile */}
           <button
             className={navbarStylesDr.mobileLogoutButton}
-            onClick={() => {
+            onClick={async () => {
               setOpen(false);
+              await signOut();
               window.location.href = "/doctor-admin/login";
             }}
           >

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 import {
   Edit2,
   Save,
@@ -21,8 +22,6 @@ import {
   BadgeIndianRupee,
 } from "lucide-react";
 import { editProfilePageStyles, iconSize } from "../../assets/dummyStyles";
-
-const STORAGE_KEY = "doctorToken_v1";
 
 /* ----------------- helpers ----------------- */
 function parse12HourTimeToMinutes(t) {
@@ -59,6 +58,7 @@ function dedupeAndSortSchedule(schedule = {}) {
 export default function EditProfilePage({ apiBase }) {
   const { id } = useParams(); // expects route like /doctor-edit/:id
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   const API_BASE = "http://localhost:4000/api/doctors";
 
   const [doc, setDoc] = useState(null);
@@ -243,7 +243,7 @@ export default function EditProfilePage({ apiBase }) {
         form.append("imageUrl", doc.imageUrl);
       }
 
-      const token = localStorage.getItem(STORAGE_KEY);
+      const token = await getToken();
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const res = await fetch(`${API_BASE}/${id}`, {

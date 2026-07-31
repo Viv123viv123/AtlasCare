@@ -10,7 +10,6 @@ import {
   updateDoctor,
   deleteDoctor,
   toggleAvailability,
-  doctorLogin,
 } from "../controllers/doctorController.js";
 
 import doctorAuth from "../middlewares/doctorAuth.js";
@@ -24,7 +23,11 @@ const doctorRouter = express.Router();
 
 
 doctorRouter.get("/", getDoctors);
-doctorRouter.post("/login", doctorLogin);
+doctorRouter.get("/me", doctorAuth, (req, res) => {
+  const doctor = req.doctor.toObject();
+  delete doctor.password;
+  res.json({ success: true, data: doctor });
+});
 doctorRouter.get("/:id", getDoctorById);
 doctorRouter.post("/", upload.single("image"), createDoctor);
 doctorRouter.put(

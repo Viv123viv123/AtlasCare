@@ -10,10 +10,16 @@ const doctorSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ⚠️ Plain text password (NOT hashed)
+    clerkUserId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+
+    // Kept optional for legacy records; Clerk owns doctor credentials.
     password: {
       type: String,
-      required: true,
       select: false,
     },
 
