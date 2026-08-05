@@ -8,7 +8,7 @@ import { clerkMiddleware } from "@clerk/express";
 import appointmentRouter from './routes/appointmentRouter.js';
 import doctorRouter from './routes/doctorRouter.js';
 import serviceRouter from './routes/serviceRoutes.js';
-import serviceAppointmentRouter from './routes/serviceAppointmentRouter.js';
+import serviceAppointmentRouter from './routes/serviceAppointmentRouter.js'; 
 
 const app = express();
 const port = process.env.PORT || 4000;
