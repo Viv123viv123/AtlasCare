@@ -11,6 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import { serviceListStyles as s } from "../../assets/dummyStyles";
+import { adminFetch } from "../../utils/adminFetch";
 
 export default function ListServicePage({ apiBase }) {
   const API_BASE = apiBase || "http://localhost:4000";
@@ -121,7 +122,7 @@ function sortSlotsForDisplay(slots = []) {
   // Load services from backend
   async function fetchServices() {
     try {
-      const res = await fetch(`${API_BASE}/api/services`);
+      const res = await adminFetch(`${API_BASE}/api/services`);
       const body = await res.json().catch(() => null);
       if (!res.ok) {
         console.error("Failed to fetch services", body);
@@ -332,7 +333,7 @@ function sortSlotsForDisplay(slots = []) {
     let latest = service;
     if (service.id) {
       try {
-        const res = await fetch(`${API_BASE}/api/services/${service.id}`);
+        const res = await adminFetch(`${API_BASE}/api/services/${service.id}`);
         const body = await res.json().catch(() => null);
         if (res.ok && body) {
           // body might be { success:true, data: service }
@@ -540,7 +541,7 @@ function sortSlotsForDisplay(slots = []) {
       }
 
       const id = editForm.id;
-      const res = await fetch(`${API_BASE}/api/services/${id}`, {
+      const res = await adminFetch(`${API_BASE}/api/services/${id}`, {
         method: "PUT",
         body: fd,
       });
@@ -594,7 +595,7 @@ function sortSlotsForDisplay(slots = []) {
     if (!window.confirm("Are you sure you want to remove this service?"))
       return;
     try {
-      const res = await fetch(`${API_BASE}/api/services/${id}`, {
+      const res = await adminFetch(`${API_BASE}/api/services/${id}`, {
         method: "DELETE",
       });
       const body = await res.json().catch(() => null);

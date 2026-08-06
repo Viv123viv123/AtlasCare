@@ -13,6 +13,7 @@ import {
 } from "../controllers/doctorController.js";
 
 import doctorAuth from "../middlewares/doctorAuth.js";
+import adminAuth from "../middlewares/adminAuth.js";
 
 // Use the OS temp directory so uploads work cross-platform (Windows/Linux/macOS)
 const upload = multer({ dest: os.tmpdir() });
@@ -29,7 +30,7 @@ doctorRouter.get("/me", doctorAuth, (req, res) => {
   res.json({ success: true, data: doctor });
 });
 doctorRouter.get("/:id", getDoctorById);
-doctorRouter.post("/", upload.single("image"), createDoctor);
+doctorRouter.post("/", adminAuth, upload.single("image"), createDoctor);
 doctorRouter.put(
   "/:id",
   doctorAuth,
@@ -41,6 +42,6 @@ doctorRouter.post(
   doctorAuth,
   toggleAvailability
 );
-doctorRouter.delete("/:id", deleteDoctor);
+doctorRouter.delete("/:id", adminAuth, deleteDoctor);
 
 export default doctorRouter;

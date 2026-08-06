@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Search, Calendar, BadgeIndianRupee } from "lucide-react";
 import { pageStyles, statusClasses, keyframesStyles } from "../../assets/dummyStyles";
+import { adminFetch } from "../../utils/adminFetch";
 
 /* ----------------------
   Config
@@ -66,7 +67,7 @@ export default function AppointmentsPage() {
         const url = `${API_BASE}/api/appointments?limit=200${
           q ? `&search=${encodeURIComponent(q)}` : ""
         }`;
-        const res = await fetch(url);
+        const res = await adminFetch(url);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           throw new Error(body?.message || `Failed to fetch (${res.status})`);
@@ -177,7 +178,7 @@ export default function AppointmentsPage() {
       );
       setShowAll(true);
 
-      const res = await fetch(`${API_BASE}/api/appointments/${id}/cancel`, {
+      const res = await adminFetch(`${API_BASE}/api/appointments/${id}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -210,7 +211,7 @@ export default function AppointmentsPage() {
       setError(err.message || "Failed to cancel appointment");
       // revert optimistic update (simple approach: reload)
       try {
-        const reload = await fetch(`${API_BASE}/api/appointments?limit=200`);
+        const reload = await adminFetch(`${API_BASE}/api/appointments?limit=200`);
         if (reload.ok) {
           const body = await reload.json();
           const items = (body?.appointments || []).map((a) => ({

@@ -8,6 +8,7 @@
 //  - This component also exposes window.refreshServices() for convenience.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { adminFetch } from "../../utils/adminFetch";
 import {
   ClipboardList,
   Calendar,
@@ -109,7 +110,7 @@ export default function ServiceDashboard({ services: servicesProp = null }) {
       }
 
       const url = `${API_BASE}/api/service-appointments/stats/summary`;
-      const res = await fetch(url, buildFetchOptions());
+      const res = await adminFetch(url, buildFetchOptions());
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(

@@ -15,7 +15,9 @@ import ServiceAppointments from "./pages/ServiceAppointments/ServiceAppointments
 import Hero from "./components/Hero/Hero";
 
 function RequireAuth({ children }) {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const role = user?.publicMetadata?.role;
+  const isAdmin = role === "admin" || role === "super-admin";
 
   if (!isLoaded) return null; // prevent flicker
   if (!isSignedIn)
@@ -42,6 +44,27 @@ function RequireAuth({ children }) {
         </div>
       </div>
     );
+  if (!isAdmin)
+    return (
+      <div className="min-h-screen font-mono flex items-center justify-center bg-linear-to-b from-emerald-50 via-green-50 to-emerald-100 px-4">
+        <div className="text-center">
+          <p className="text-emerald-800 font-semibold text-lg sm:text-2xl mb-4 animate-fade-in">
+            Admin access required
+          </p>
+          <div className="flex justify-center">
+            <Link
+              to="/"
+              className="px-4 py-2 text-sm rounded-full bg-emerald-600 text-white shadow-sm
+                       hover:bg-emerald-700 hover:shadow-md
+                       transition-all duration-300 ease-in-out"
+            >
+              HOME
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+
   return children;
 }
 

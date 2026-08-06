@@ -1,6 +1,7 @@
 // routes/serviceAppointmentRouter.js
 import express from "express";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
+import adminAuth from "../middlewares/adminAuth.js";
 
 import {
   getServiceAppointments,
@@ -32,7 +33,7 @@ router.get(
 
 /* ID ROUTES LAST */
 router.get("/:id", getServiceAppointmentById);
-router.put("/:id", updateServiceAppointment);
-router.post("/:id/cancel", cancelServiceAppointment);
+router.put("/:id", adminAuth, updateServiceAppointment);
+router.post("/:id/cancel", adminAuth, cancelServiceAppointment);
 
 export default router;

@@ -1,6 +1,7 @@
 // routes/appointmentRouter.js
 import express from "express";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
+import adminAuth from "../middlewares/adminAuth.js";
 
 import {
   getAppointments,
@@ -56,9 +57,9 @@ appointmentRouter.get(
   getAppointmentsByDoctor
 );
 
-appointmentRouter.post("/:id/cancel", cancelAppointment);
-appointmentRouter.get("/paitents/count",getRegisteredUserCount); 
-appointmentRouter.put("/:id", updateAppointment);
+appointmentRouter.post("/:id/cancel", adminAuth, cancelAppointment);
+appointmentRouter.get("/patients/count", adminAuth, getRegisteredUserCount); 
+appointmentRouter.put("/:id", adminAuth, updateAppointment);
 
 
 export default appointmentRouter;

@@ -15,6 +15,7 @@ import {
   X as XIcon,
 } from "lucide-react";
 import { serviceAppointmentsStyles } from "../../assets/dummyStyles";
+import { adminFetch } from "../../utils/adminFetch";
 
 /* ----------------------
   Config
@@ -307,7 +308,7 @@ export default function ServiceAppointmentsPage() {
     setError(null);
     try {
       const url = `${API_BASE}/api/service-appointments?limit=500`;
-      const res = await fetch(url);
+      const res = await adminFetch(url);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(
@@ -408,7 +409,7 @@ export default function ServiceAppointmentsPage() {
     pushToast("Updating status", `Appointment #${id} → ${newStatus}`);
 
     try {
-      const res = await fetch(`${API_BASE}/api/service-appointments/${id}`, {
+      const res = await adminFetch(`${API_BASE}/api/service-appointments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -493,7 +494,7 @@ export default function ServiceAppointmentsPage() {
     );
 
     try {
-      const res = await fetch(`${API_BASE}/api/service-appointments/${id}`, {
+      const res = await adminFetch(`${API_BASE}/api/service-appointments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         // send rescheduledTo (backend expects this) and set status
@@ -571,7 +572,7 @@ export default function ServiceAppointmentsPage() {
     pushToast("Canceling", `Appointment #${id} is being canceled`);
 
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `${API_BASE}/api/service-appointments/${id}/cancel`,
         {
           method: "POST",

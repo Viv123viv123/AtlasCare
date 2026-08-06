@@ -9,6 +9,7 @@ import {
   EyeClosed,
 } from "lucide-react";
 import { doctorListStyles } from "../../assets/dummyStyles";
+import { adminFetch } from "../../utils/adminFetch";
 
 function formatDateISO(iso) {
   if (!iso || typeof iso !== "string") return iso;
@@ -124,7 +125,7 @@ export default function AnimatedDoctorListResponsive({ apiBase }) {
   async function fetchDoctors() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/doctors`);
+      const res = await adminFetch(`${API_BASE}/api/doctors`);
       const body = await res.json().catch(() => null);
 
       if (res.ok && body && body.success) {
@@ -199,7 +200,7 @@ export default function AnimatedDoctorListResponsive({ apiBase }) {
     if (!ok) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/doctors/${id}`, {
+      const res = await adminFetch(`${API_BASE}/api/doctors/${id}`, {
         method: "DELETE",
       });
       const body = await res.json().catch(() => null);

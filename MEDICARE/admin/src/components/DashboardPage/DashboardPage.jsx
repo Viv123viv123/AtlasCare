@@ -9,6 +9,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { dashboardStyles as s } from "../../assets/dummyStyles";
+import { adminFetch } from "../../utils/adminFetch";
 
 /* ----------------------
   Config
@@ -110,7 +111,7 @@ export default function DashboardPage() {
       setError(null);
       try {
         const url = `${API_BASE}/api/doctors?limit=200`;
-        const res = await fetch(url);
+        const res = await adminFetch(url);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           throw new Error(
@@ -151,7 +152,7 @@ export default function DashboardPage() {
     async function loadPatientCount() {
       setPatientCountLoading(true);
       try {
-        const res = await fetch(PATIENT_COUNT_API);
+        const res = await adminFetch(PATIENT_COUNT_API);
         if (!res.ok) {
           console.warn("Patient count fetch failed:", res.status);
           if (mounted) setPatientCount(0);
