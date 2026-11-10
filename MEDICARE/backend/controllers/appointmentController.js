@@ -284,6 +284,7 @@ export const createAppointment = async (req, res) => {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
+          appointmentType: "doctor",
           doctorId: String(doctorId),
           doctorName: doctorName || "",
           speciality: speciality || "",

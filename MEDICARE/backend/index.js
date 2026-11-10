@@ -9,6 +9,7 @@ import appointmentRouter from './routes/appointmentRouter.js';
 import doctorRouter from './routes/doctorRouter.js';
 import serviceRouter from './routes/serviceRoutes.js';
 import serviceAppointmentRouter from './routes/serviceAppointmentRouter.js'; 
+import webhookRouter from './routes/webhookRouter.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -45,13 +46,17 @@ app.use(
     },
     credentials: true, // ✅ REQUIRED for cookies / Clerk
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"],
   })
 );
 
 
 // ⭐ Use Clerk middleware globally (does NOT protect routes)
 app.use(clerkMiddleware());
+
+// ⭐ Stripe Webhook Route (MUST use express.raw BEFORE express.json)
+app.use("/api/webhook", express.raw({ type: "application/json" }), webhookRouter);
+
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 

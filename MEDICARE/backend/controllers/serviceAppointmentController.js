@@ -243,6 +243,7 @@ export const createServiceAppointment = async (req, res) => {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
+          appointmentType: "service",
           appointmentId: String(pendingAppointment._id),
           serviceId: String(serviceId),
           serviceName: String(resolvedServiceName).slice(0, 200),
