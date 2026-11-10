@@ -373,23 +373,6 @@ export const confirmPayment = async (req, res) => {
       }
     }
 
-    // last attempt: find appointment created in last 15 minutes with matching amount
-    if (!appt) {
-      const amount = Math.round((session.amount_total || 0) / 100);
-      const fifteenAgo = new Date(Date.now() - 1000 * 60 * 15);
-      appt = await Appointment.findOneAndUpdate(
-        { fees: amount, createdAt: { $gte: fifteenAgo } },
-        {
-          "payment.status": "Paid",
-          "payment.providerId": session.payment_intent || null,
-          status: "Confirmed",
-          paidAt: new Date(),
-          sessionId: session_id,
-        },
-        { new: true }
-      );
-    }
-
     if (!appt) {
       return res.status(404).json({ success: false, message: "Appointment not found for this payment session" });
     }

@@ -46,6 +46,21 @@ export const handleStripeWebhook = async (req, res) => {
 
       try {
         if (appointmentType === "doctor" || (!appointmentType && metadata.doctorId)) {
+          // Idempotency check: if already processed, return 200 immediately without overwriting paidAt
+          const existingAppt = await Appointment.findOne({
+            $or: [
+              { sessionId: session.id },
+              ...(metadata.clerkUserId && metadata.doctorId
+                ? [{ doctorId: metadata.doctorId, createdBy: metadata.clerkUserId, status: "Confirmed" }]
+                : []),
+            ],
+          });
+
+          if (existingAppt && existingAppt.payment?.status === "Paid") {
+            console.log(`ℹ️ Webhook: Doctor appointment ${existingAppt._id} already marked Paid. Skipping duplicate event (Idempotent).`);
+            return res.status(200).json({ received: true, alreadyProcessed: true });
+          }
+
           // 1. Doctor Appointment Update
           let appt = await Appointment.findOneAndUpdate(
             { sessionId: session.id },
@@ -83,6 +98,19 @@ export const handleStripeWebhook = async (req, res) => {
             console.warn(`⚠️ Webhook: Doctor appointment not found for session ${session.id}`);
           }
         } else if (appointmentType === "service" || metadata.serviceId || metadata.appointmentId) {
+          // Idempotency check: if already processed, return 200 immediately
+          const existingService = await ServiceAppointment.findOne({
+            $or: [
+              { "payment.sessionId": session.id },
+              ...(metadata.appointmentId ? [{ _id: metadata.appointmentId }] : []),
+            ],
+          });
+
+          if (existingService && (existingService.payment?.status === "Paid" || existingService.payment?.status === "Confirmed")) {
+            console.log(`ℹ️ Webhook: Service appointment ${existingService._id} already marked Paid. Skipping duplicate event (Idempotent).`);
+            return res.status(200).json({ received: true, alreadyProcessed: true });
+          }
+
           // 2. Service Appointment Update
           let appt = await ServiceAppointment.findOneAndUpdate(
             { "payment.sessionId": session.id },
@@ -120,7 +148,19 @@ export const handleStripeWebhook = async (req, res) => {
             console.warn(`⚠️ Webhook: Service appointment not found for session ${session.id}`);
           }
         } else {
-          // Fallback: If type was not specified, check doctor appointments first, then service
+          // Fallback: If type was not specified, check idempotency first
+          const existingDoc = await Appointment.findOne({ sessionId: session.id });
+          if (existingDoc && existingDoc.payment?.status === "Paid") {
+            console.log(`ℹ️ Webhook: Doctor appointment ${existingDoc._id} already Paid. Skipping.`);
+            return res.status(200).json({ received: true, alreadyProcessed: true });
+          }
+
+          const existingSer = await ServiceAppointment.findOne({ "payment.sessionId": session.id });
+          if (existingSer && (existingSer.payment?.status === "Paid" || existingSer.payment?.status === "Confirmed")) {
+            console.log(`ℹ️ Webhook: Service appointment ${existingSer._id} already Paid. Skipping.`);
+            return res.status(200).json({ received: true, alreadyProcessed: true });
+          }
+
           let doctorAppt = await Appointment.findOneAndUpdate(
             { sessionId: session.id },
             {
