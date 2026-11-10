@@ -20,16 +20,18 @@ export async function uploadToCloudinary(filePath, folder = "Doctor") {
       folder,
       resource_type: "image",
     });
-
-    // remove local file after upload
-    fs.unlinkSync(filePath);
-
-    return result;  // contains { secure_url, public_id, ... }
+    return result; // contains { secure_url, public_id, ... }
   } catch (err) {
     console.error("Cloudinary upload error:", err);
     throw err;
+  } finally {
+    // 🧹 ALWAYS runs — cleans up local file whether upload succeeds OR fails
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }
 }
+
 
 /* ===========================================================
    DELETE FROM CLOUDINARY (optional)

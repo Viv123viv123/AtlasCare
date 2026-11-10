@@ -378,6 +378,16 @@ export const getServiceAppointmentById = async (req, res) => {
     const { id } = req.params;
     const appt = await ServiceAppointment.findById(id).lean();
     if (!appt) return res.status(404).json({ success: false, message: "Appointment not found" });
+
+    // Object-level authorization check: Ensure user owns this appointment or is an admin
+    const clerkUserId = resolveClerkUserId(req);
+    const isAdmin = req.admin?.role === "admin" || req.admin?.role === "super-admin";
+    const isOwner = clerkUserId && appt.createdBy && appt.createdBy === clerkUserId;
+
+    if (appt.createdBy && !isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: "Access denied to this appointment" });
+    }
+
     return res.json({ success: true, data: appt });
   } catch (err) {
     console.error("getServiceAppointmentById error:", err);
@@ -490,17 +500,18 @@ export const getServiceAppointmentStats = async (req, res) => {
    ========================================================================== */
 export const getServiceAppointmentsByPatient = async (req, res) => {
   try {
+    // Strictly extract identity from verified authentication session ONLY
     const clerkUserId = resolveClerkUserId(req);
-    const { createdBy, mobile } = req.query;
-    const resolvedCreatedBy = createdBy || clerkUserId || null;
-    if (!resolvedCreatedBy && !mobile) return res.json({ success: true, data: [] });
+    if (!clerkUserId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
 
-    const filter = {};
-    if (resolvedCreatedBy) filter.createdBy = resolvedCreatedBy;
-    if (mobile) filter.mobile = mobile;
+    // Object-level authorization: user can ONLY retrieve their own service appointments
+    const list = await ServiceAppointment.find({ createdBy: clerkUserId })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const list = await ServiceAppointment.find(filter).sort({ createdAt: -1 }).lean();
-    return res.json({ success: true, data: list });
+    return res.json({ success: true, data: list, appointments: list });
   } catch (err) {
     console.error("getServiceAppointmentsByPatient error:", err);
     return res.status(500).json({ success: false, message: "Server error" });

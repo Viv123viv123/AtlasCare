@@ -83,6 +83,17 @@ export const getAppointmentById = async (req, res) => {
     const { id } = req.params;
     const appt = await Appointment.findById(id).populate("doctorId", "name specialization owner imageUrl image").lean();
     if (!appt) return res.status(404).json({ success: false, message: "Appointment not found" });
+
+    // Object-level authorization check: Ensure user owns this appointment, is the assigned doctor, or is an admin
+    const clerkUserId = resolveClerkUserId(req);
+    const isAdmin = req.admin?.role === "admin" || req.admin?.role === "super-admin";
+    const isOwner = clerkUserId && appt.createdBy && appt.createdBy === clerkUserId;
+    const isDoctor = req.doctor && String(appt.doctorId?._id || appt.doctorId) === String(req.doctor._id || req.doctor.id);
+
+    if (appt.createdBy && !isOwner && !isAdmin && !isDoctor) {
+      return res.status(403).json({ success: false, message: "Access denied to this appointment" });
+    }
+
     return res.json({ success: true, appointment: appt });
   } catch (err) {
     console.error("getAppointmentById:", err);
@@ -92,25 +103,21 @@ export const getAppointmentById = async (req, res) => {
 
 export const getAppointmentsByPatient = async (req, res) => {
   try {
-    const queryCreatedBy = req.query.createdBy || null;
-    const clerkUserId = req.auth?.userId || null;
-    const resolvedCreatedBy = queryCreatedBy || clerkUserId || null;
+    // Strictly extract identity from verified authentication session ONLY
+    const clerkUserId = resolveClerkUserId(req);
 
-    console.log("resolvedCreatedBy (query or req.auth.userId):", resolvedCreatedBy);
-
-    if (!resolvedCreatedBy && !req.query.mobile) {
+    if (!clerkUserId) {
       return res.status(401).json({
         success: false,
-        message:
-          "Authentication required for /me (no Clerk user detected on server). Try passing ?createdBy=<id> to debug or check Authorization header forwarding.",
+        message: "Authentication required",
       });
     }
 
-    const filter = {};
-    if (resolvedCreatedBy) filter.createdBy = resolvedCreatedBy;
-    if (req.query.mobile) filter.mobile = req.query.mobile;
+    // Object-level authorization: user can ONLY retrieve their own appointments
+    const appointments = await Appointment.find({ createdBy: clerkUserId })
+      .sort({ date: 1, time: 1 })
+      .lean();
 
-    const appointments = await Appointment.find(filter).sort({ date: 1, time: 1 }).lean();
     return res.json({ success: true, appointments });
   } catch (err) {
     console.error("Error in getAppointmentsByPatient:", err);
