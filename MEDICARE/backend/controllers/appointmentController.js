@@ -161,21 +161,21 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ success: false, message: "fee must be a valid number" });
     }
 
-    // Duplicate booking prevention
+    // Duplicate booking prevention - global guard (any patient)
     const existingBooking = await Appointment.findOne({
       doctorId,
-      createdBy: clerkUserId,
       date: String(date),
       time: String(time),
-      status: { $ne: "Canceled" },
+      status: { $ne: "Canceled" }, // ignore cancelled slots
     }).lean();
 
     if (existingBooking) {
       return res.status(409).json({
         success: false,
-        message: "You already have an appointment with this doctor at the selected date and time.",
+        message: "This time slot is already taken. Please choose another.",
       });
     }
+    
 
     // Fetch doctor as source-of-truth
     let doctor = null;

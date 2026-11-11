@@ -98,6 +98,9 @@ export default function DoctorDetail() {
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState("");
+  // holds times already booked for the selected date
+  const [bookedSlots, setBookedSlots] = useState([]);
+
   const [isVisible, setIsVisible] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -116,11 +119,51 @@ export default function DoctorDetail() {
   const { isSignedIn, user, isLoaded: userLoaded } = useUser();
 
   useEffect(() => {
+    // Fetch existing appointments for this doctor when a date is selected
+    // and store the times that are already booked (excluding canceled)
+    const fetchBooked = async () => {
+      if (!selectedDate || !doctor?.id) return setBookedSlots([]);
+      try {
+        const dateISO = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const res = await fetch(`${API_BASE}/api/appointments/doctor/${doctor.id}`);
+        if (!res.ok) throw new Error('Failed to fetch appointments');
+        const data = await res.json();
+        const booked = (data?.appointments || data?.data || []).filter(
+          (a) => a.date === dateISO && a.status !== 'Canceled'
+        ).map((a) => a.time);
+        setBookedSlots(booked);
+      } catch (e) {
+        console.error('Error loading booked slots:', e);
+        setBookedSlots([]);
+      }
+    };
+    fetchBooked();
+  }, [selectedDate, doctor?.id]);
     setIsVisible(true);
   }, []);
 
   // Prefill the form fields quietly if user is available (no UI markup change)
   useEffect(() => {
+    // Fetch existing appointments for this doctor when a date is selected
+    // and store the times that are already booked (excluding canceled)
+    const fetchBooked = async () => {
+      if (!selectedDate || !doctor?.id) return setBookedSlots([]);
+      try {
+        const dateISO = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const res = await fetch(`${API_BASE}/api/appointments/doctor/${doctor.id}`);
+        if (!res.ok) throw new Error('Failed to fetch appointments');
+        const data = await res.json();
+        const booked = (data?.appointments || data?.data || []).filter(
+          (a) => a.date === dateISO && a.status !== 'Canceled'
+        ).map((a) => a.time);
+        setBookedSlots(booked);
+      } catch (e) {
+        console.error('Error loading booked slots:', e);
+        setBookedSlots([]);
+      }
+    };
+    fetchBooked();
+  }, [selectedDate, doctor?.id]);
     if (!userLoaded) return;
     if (user) {
       const fullName =
@@ -150,6 +193,26 @@ export default function DoctorDetail() {
   }, [userLoaded, user]);
 
   useEffect(() => {
+    // Fetch existing appointments for this doctor when a date is selected
+    // and store the times that are already booked (excluding canceled)
+    const fetchBooked = async () => {
+      if (!selectedDate || !doctor?.id) return setBookedSlots([]);
+      try {
+        const dateISO = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const res = await fetch(`${API_BASE}/api/appointments/doctor/${doctor.id}`);
+        if (!res.ok) throw new Error('Failed to fetch appointments');
+        const data = await res.json();
+        const booked = (data?.appointments || data?.data || []).filter(
+          (a) => a.date === dateISO && a.status !== 'Canceled'
+        ).map((a) => a.time);
+        setBookedSlots(booked);
+      } catch (e) {
+        console.error('Error loading booked slots:', e);
+        setBookedSlots([]);
+      }
+    };
+    fetchBooked();
+  }, [selectedDate, doctor?.id]);
     let mounted = true;
     async function fetchDoctor() {
       setLoading(true);
@@ -667,7 +730,29 @@ export default function DoctorDetail() {
                     </p>
                   )}
 
-                  {slots.map((slot) => (
+                  {slots.map((slot) => {
+                const isBooked = bookedSlots.includes(slot);
+                const isSelected = selectedSlot === slot;
+                return (
+                  <button
+                    key={slot}
+                    onClick={() => !isBooked && setSelectedSlot(slot)}
+                    disabled={isBooked}
+                    className={`${doctorDetailStyles.timeSlotButton} ${
+                      isBooked
+                        ? doctorDetailStyles.timeSlotButtonBooked // optional style
+                        : isSelected
+                        ? doctorDetailStyles.timeSlotButtonSelected
+                        : doctorDetailStyles.timeSlotButtonUnselected
+                    }`}
+                  >
+                    <div className={doctorDetailStyles.timeSlotContent}>
+                      <Clock className={doctorDetailStyles.timeSlotIcon} />
+                      <span>{slot}</span>
+                    </div>
+                  </button>
+                );
+              })}
                     <button
                       key={slot}
                       onClick={() => setSelectedSlot(slot)}
